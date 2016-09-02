@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@org.springframework.test.context.ContextConfiguration(locations = {"classpath:TestingApplicationContext.xml"}, inheritLocations = true)
 public class CloseVisitTaskTest extends BaseModuleContextSensitiveTest {
     @Test
     public void shouldCloseVisitWhenValueOfTheObservationMatches() throws Exception {

@@ -41,5 +41,9 @@
 	</messages>
 	<!-- /Internationalization -->
 
+	<require_modules>
+		<require_module>org.bahmni.module.bahmnicore</require_module>
+	</require_modules>
+
 </module>
 
