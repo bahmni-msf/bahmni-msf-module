@@ -22,16 +22,14 @@ public class CloseVisitTask extends AbstractTask {
         VisitService visitService = Context.getVisitService();
         ConceptService conceptService = Context.getConceptService();
         Concept firstStageSurgicalOutcomesConcept = conceptService.getConcept("PMIPA, Outcomes for 1st stage surgical validation");
-        Concept validOutcomeConcept = conceptService.getConcept("Valid");
+        Concept followUpSurgicalOutcomesConcept = conceptService.getConcept("FUP, Outcomes for follow-up surgical validation");
+        Concept finalValidationOutcomesConcept = conceptService.getConcept("FV, Outcomes FV");
         List<Visit> openVisits = visitService.getVisits(null, null, null, null, null, null, null, null, null, false, false);
         for (Visit openVisit : openVisits) {
             BahmniObsService bahmniObsService = Context.getService(BahmniObsService.class);
-            Collection<BahmniObservation> latestObsByVisit = bahmniObsService.getLatestObsByVisit(openVisit, Arrays.asList(firstStageSurgicalOutcomesConcept), null, true);
-            for (BahmniObservation bahmniObservation : latestObsByVisit) {
-                EncounterTransaction.Concept obsValue = (EncounterTransaction.Concept) bahmniObservation.getValue();
-                if (obsValue.getUuid().equals(validOutcomeConcept.getUuid())) {
-                    visitService.endVisit(openVisit, new Date());
-                }
+            Collection<BahmniObservation> latestObsByVisit = bahmniObsService.getLatestObsByVisit(openVisit, Arrays.asList(firstStageSurgicalOutcomesConcept, followUpSurgicalOutcomesConcept, finalValidationOutcomesConcept), null, true);
+            if (latestObsByVisit.size() > 0){
+                visitService.endVisit(openVisit, new Date());
             }
         }
     }
