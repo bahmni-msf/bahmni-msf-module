@@ -21,7 +21,7 @@ public class CloseVisitTask extends AbstractTask {
     public void execute() {
         VisitService visitService = Context.getVisitService();
         ConceptService conceptService = Context.getConceptService();
-        Concept firstStageSurgicalOutcomesConcept = conceptService.getConcept("PMIPA, Outcomes for 1st stage surgical validation");
+        Concept firstStageSurgicalOutcomesConcept = conceptService.getConcept("FSTG, Outcomes for 1st stage surgical validation");
         Concept followUpSurgicalOutcomesConcept = conceptService.getConcept("FUP, Outcomes for follow-up surgical validation");
         Concept finalValidationOutcomesConcept = conceptService.getConcept("FV, Outcomes FV");
         List<Visit> openVisits = visitService.getVisits(null, null, null, null, null, null, null, null, null, false, false);
