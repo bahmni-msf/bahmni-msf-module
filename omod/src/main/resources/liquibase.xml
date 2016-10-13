@@ -17,4 +17,8 @@
             name = 'Auto Close Visits Task';
         </sql>
     </changeSet>
-    </databaseChangeLog>
+    <changeSet id="bahmni-msf-131020161725" author="Chethan, Santhosh">
+        <comment>Adding concept mappings of type Abbreviation for nationality concepts</comment>
+        <sqlFile path="AbbreviationsForNationalityConcepts.sql"/>
+    </changeSet>
+</databaseChangeLog>
