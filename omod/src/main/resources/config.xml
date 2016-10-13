@@ -44,6 +44,10 @@
 	<require_modules>
 		<require_module>org.bahmni.module.bahmnicore</require_module>
 	</require_modules>
+	<advice>
+		<point>org.openmrs.api.PatientService</point>
+		<class>org.bahmni.module.bahmnimsf.identifier.enhancement.advice.BeforeSaveAdvice</class>
+	</advice>
 
 </module>
 
