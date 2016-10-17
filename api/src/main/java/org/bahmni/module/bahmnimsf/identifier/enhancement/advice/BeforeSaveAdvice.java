@@ -11,7 +11,7 @@ public class BeforeSaveAdvice implements MethodBeforeAdvice {
     private static final String methodToIntercept = "savePatient";
 
     @Override
-    public void before(Method method, Object[] objects, Object o) throws Throwable {
+    public void before(Method method, Object[] objects, Object o) {
         if (method.getName().equalsIgnoreCase(methodToIntercept)) {
             Patient patient = (Patient) objects[0];
             if (patient.getPatientId() == null) {
