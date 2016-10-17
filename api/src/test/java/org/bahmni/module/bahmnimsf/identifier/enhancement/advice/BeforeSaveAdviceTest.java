@@ -34,6 +34,8 @@ public class BeforeSaveAdviceTest {
     private Method method;
     private BeforeSaveAdvice beforeSaveAdvice;
     Patient patient;
+    Object output;
+    Object[] input;
 
     @Before
     public void setup() throws NoSuchMethodException {
@@ -44,24 +46,54 @@ public class BeforeSaveAdviceTest {
         when(conceptService.getConcept("100")).thenReturn(concept);
         Locale defaultLocale = new Locale("en", "GB");
         PowerMockito.when(Context.getLocale()).thenReturn(defaultLocale);
-        method = this.getClass().getMethod("savePatient");
+        patient = setUpPatientData();
+        output = new Object();
+        input= new Object[]{patient};
 
         beforeSaveAdvice = new BeforeSaveAdvice();
-        patient = setUpPatientData();
 
         setupConceptSource("Abbreviation", concept);
     }
 
     @Test
-    public void shouldUpdateThePatientIdentiferWithCountryCodeAndGender(){
-        Object output = new Object();
-        Object[] input= {patient};
+    public void shouldUpdateThePatientIdentifierWithCountryCodeAndGenderForPatientCreation() throws NoSuchMethodException {
+        String methodToIntercept = "savePatient";
+        method = this.getClass().getMethod(methodToIntercept);
+        patient.getPatientIdentifier().setIdentifier("100001");
+
         beforeSaveAdvice.before(method, input, output);
+
         assertEquals("JO100001M", patient.getPatientIdentifier().getIdentifier());
     }
 
+    @Test
+    public void shouldNotUpdateThePatientIdentifierWithCountryCodeAndGenderForPatientUpdateScenario() throws NoSuchMethodException {
+        String methodToIntercept = "savePatient";
+        patient.setPersonId(1000);
+        patient.getPatientIdentifier().setIdentifier("JO100002M");
+        method = this.getClass().getMethod(methodToIntercept);
+
+        beforeSaveAdvice.before(method, input, output);
+
+        assertEquals("JO100002M", patient.getPatientIdentifier().getIdentifier());
+    }
+
+    @Test
+    public void shouldNotUpdateThePatientIdentifierWithCountryCodeAndGenderForAnyOtherMethodInvocationApartFromSavePatient() throws NoSuchMethodException {
+        String methodToIntercept = "voidPatient";
+        patient.getPatientIdentifier().setIdentifier("JO100003M");
+        method = this.getClass().getMethod(methodToIntercept);
+
+        beforeSaveAdvice.before(method, input, output);
+
+        assertEquals("JO100003M", patient.getPatientIdentifier().getIdentifier());
+    }
 
     public void savePatient(){
+        // This is need for testing, As we can't mock Method class.
+    }
+
+    public void voidPatient(){
         // This is need for testing, As we can't mock Method class.
     }
 
