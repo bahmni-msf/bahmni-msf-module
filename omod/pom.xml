@@ -166,6 +166,39 @@
 
 		<plugins>
 			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.6.5.201403032054</version>
+				<executions>
+					<execution>
+						<id>check</id>
+						<goals>
+							<goal>report</goal>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>1.00</minimum>
+										</limit>
+										<limit>
+											<counter>BRANCH</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>1.00</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.openmrs.maven.plugins</groupId>
 				<artifactId>maven-openmrs-plugin</artifactId>
 				<extensions>true</extensions>
@@ -183,26 +216,6 @@
 						<goals>
 							<goal>package-module</goal>
 						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>Expand moduleApplicationContext and messages</id>
-						<goals>
-							<goal>unpack-dependencies</goal>
-						</goals>
-						<phase>generate-resources</phase>
-						<configuration>
-							<includeGroupIds>${project.parent.groupId}</includeGroupIds>
-							<includeArtifactIds>${project.parent.artifactId}-api</includeArtifactIds>
-							<excludeTransitive>true</excludeTransitive>
-							<includes>**/*</includes>
-							<outputDirectory>${project.build.directory}/classes</outputDirectory>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
