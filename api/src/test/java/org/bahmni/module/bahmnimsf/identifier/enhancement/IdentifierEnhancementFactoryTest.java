@@ -47,17 +47,19 @@ public class IdentifierEnhancementFactoryTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
+    private IdentifierEnhancementFactory identifierEnhancementFactory;
+
     @Before
     public void setUp() throws IOException {
         PowerMockito.mockStatic(Context.class);
         when(Context.getConceptService()).thenReturn(conceptService);
         when(Context.getAdministrationService()).thenReturn(administrationService);
+        identifierEnhancementFactory = new IdentifierEnhancementFactory();
     }
 
     @Test
     public void shouldAddNationalityCodeAsPrefixAndGenderAsSuffixToPatientIdentifier() {
         Patient patient = setUpPatientData();
-
         Concept concept = setUpConceptData();
         setupConceptSource("Abbreviation", concept);
         when(conceptService.getConcept("100")).thenReturn(concept);
@@ -68,9 +70,22 @@ public class IdentifierEnhancementFactoryTest {
     }
 
     @Test
-    public void shouldThrowRuntimeException() {
+    public void shouldThrowRuntimeExceptionIfAbbreviationDictionaryNotPresent() {
         exception.expect(RuntimeException.class);
-        exception.expectMessage("Country code for Syrian not found");
+        exception.expectMessage("Mapping with dictionary of Abbreviation not found. Add mapping with country code as reference term and Abbreviation as dictionary");
+
+        Patient patient = setUpPatientData();
+        Concept concept = setUpConceptData();
+        setupConceptSource("ICD10", concept);
+        when(conceptService.getConcept("100")).thenReturn(concept);
+
+        IdentifierEnhancementFactory.enhanceIdentifier(patient);
+    }
+
+    @Test
+    public void shouldThrowRuntimeExceptionIfCountryCodeIsNotSet() {
+        exception.expect(RuntimeException.class);
+        exception.expectMessage("No mapping found for concept Syrian. Add mapping with country code as reference term and Abbreviation as dictionary");
 
         Patient patient = setUpPatientData();
         Concept concept = setUpConceptData();

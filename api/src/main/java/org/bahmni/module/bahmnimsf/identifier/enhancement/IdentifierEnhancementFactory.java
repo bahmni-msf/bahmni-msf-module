@@ -16,7 +16,6 @@ import java.util.Collection;
 public class IdentifierEnhancementFactory {
     public static final String ABBREVIATION_CONCEPT_SOURCE = "Abbreviation";
     public static final String NATIONALITY_ATTRIBUTE = "nationality1";
-    protected final Log log = LogFactory.getLog(this.getClass());
 
     public static void enhanceIdentifier(Patient patient) {
         PatientIdentifier identifier = patient.getPatientIdentifier();
@@ -40,8 +39,11 @@ public class IdentifierEnhancementFactory {
             if (conceptReferenceTerm.getConceptSource().getName().equals(ABBREVIATION_CONCEPT_SOURCE)) {
                 return conceptReferenceTerm.getName();
             }
+            throw new RuntimeException("Mapping with dictionary of " + ABBREVIATION_CONCEPT_SOURCE + " not found."
+                    + " Add mapping with country code as reference term and " + ABBREVIATION_CONCEPT_SOURCE + " as dictionary");
         }
-        throw new RuntimeException("Country code for " + concept.getName().getName() + " not found.");
+        throw new RuntimeException("No mapping found for concept " + concept.getName().getName()
+                + ". Add mapping with country code as reference term and " + ABBREVIATION_CONCEPT_SOURCE + " as dictionary");
     }
 
     private static String extractSuffixFromPatient(Patient patient) {

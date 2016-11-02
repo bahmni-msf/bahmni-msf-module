@@ -7,7 +7,6 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniObservation;
-import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
 import org.openmrs.scheduler.tasks.AbstractTask;
 
 import java.util.Arrays;
