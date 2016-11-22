@@ -65,14 +65,14 @@
 		<dependency>
 			<groupId>org.bahmni.module</groupId>
 			<artifactId>bahmnicore-api</artifactId>
-			<version>0.84-SNAPSHOT</version>
+			<version>0.86-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
 			<artifactId>emrapi-api</artifactId>
-			<version>1.16</version>
+			<version>1.17</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
