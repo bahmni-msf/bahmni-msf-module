@@ -7,8 +7,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.openmrs.Concept;
 import org.openmrs.ConceptName;
+import org.openmrs.Patient;
 import org.openmrs.Visit;
+import org.openmrs.VisitType;
+import org.openmrs.Program;
+import org.openmrs.ProgramWorkflowState;
+import org.openmrs.PatientProgram;
+import org.openmrs.PatientState;
 import org.openmrs.api.ConceptService;
+import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniObservation;
@@ -40,8 +47,11 @@ public class CloseVisitTaskTest {
     @Mock
     private BahmniObsService bahmniObsService;
 
+    @Mock
+    private ProgramWorkflowService programWorkflowService;
+
     private CloseVisitTask closeVisitTask;
-    private Concept firstStageSurgicalOutcomesConcept, followUpSurgicalOutcomesConcept, finalValidationOutcomesConcept;
+    private Concept firstStageSurgicalOutcomesConcept, followUpSurgicalOutcomesConcept, finalValidationOutcomesConcept, networkFollowupConcept;
     private Visit visit;
 
     @Before
@@ -50,17 +60,24 @@ public class CloseVisitTaskTest {
         when(Context.getVisitService()).thenReturn(visitService);
         when(Context.getConceptService()).thenReturn(conceptService);
         when(Context.getService(BahmniObsService.class)).thenReturn(bahmniObsService);
+        when(Context.getService(ProgramWorkflowService.class)).thenReturn(programWorkflowService);
         Locale defaultLocale = new Locale("en", "GB");
         PowerMockito.when(Context.getLocale()).thenReturn(defaultLocale);
 
         firstStageSurgicalOutcomesConcept = setUpConceptData(100, "FSTG, Outcomes for 1st stage surgical validation");
         followUpSurgicalOutcomesConcept = setUpConceptData(101, "FUP, Outcomes for follow-up surgical validation");
         finalValidationOutcomesConcept = setUpConceptData(102, "FV, Outcomes FV");
+        networkFollowupConcept = setUpConceptData(103, "Network Follow-up");
 
         when(conceptService.getConcept("FSTG, Outcomes for 1st stage surgical validation")).thenReturn(firstStageSurgicalOutcomesConcept);
         when(conceptService.getConcept("FUP, Outcomes for follow-up surgical validation")).thenReturn(followUpSurgicalOutcomesConcept);
         when(conceptService.getConcept("FV, Outcomes FV")).thenReturn(finalValidationOutcomesConcept);
+        when(conceptService.getConcept("Network Follow-up")).thenReturn(networkFollowupConcept);
         visit = new Visit(1000);
+        visit.setVisitType(new VisitType("First State Validation", "for initial assessments"));
+        visit.setPatient(new Patient(2));
+        visit.setStartDatetime(new Date());
+
         when(visitService.getVisits(null, null, null, null, null, null, null, null, null, false, false)).thenReturn(Arrays.asList(visit));
         closeVisitTask = new CloseVisitTask();
     }
@@ -108,5 +125,60 @@ public class CloseVisitTaskTest {
         conceptName.setLocale(new Locale("en", "GB"));
         concept.setNames(Arrays.asList(conceptName));
         return concept;
+    }
+
+    @Test
+    public void shouldCloseTheVisitIfVisitTypeIsHospitalAndProgramWorkFlowStateIsNetWorkFollowup() throws Exception {
+        VisitType visitType = new VisitType("Hospital", "this visitType is used for ipd section");
+        Patient patient = new Patient();
+        Visit hospitalVisit = new Visit(patient, visitType, new Date());
+        when(visitService.getVisits(null, null, null, null, null, null, null, null, null, false, false)).thenReturn(Arrays.asList(hospitalVisit));
+        ProgramWorkflowState networkFollowUpProgramWorkflowState = new ProgramWorkflowState(1);
+        when(programWorkflowService.getProgramWorkflowStatesByConcept(networkFollowupConcept)).thenReturn(Arrays.asList(networkFollowUpProgramWorkflowState));
+        PatientState patientState = new PatientState(1);
+        patientState.setState(networkFollowUpProgramWorkflowState);
+        Set<PatientState> patientStates = new TreeSet<PatientState>();
+        patientStates.add(patientState);
+        PatientProgram patientProgram = new PatientProgram(1);
+        patientProgram.setStates(patientStates);
+        when(programWorkflowService.getPatientPrograms(eq(hospitalVisit.getPatient()), any(Program.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class), eq(false))).thenReturn(Arrays.asList(patientProgram));
+        Date now = new Date();
+        whenNew(Date.class).withNoArguments().thenReturn(now);
+
+        closeVisitTask.execute();
+
+
+        verify(conceptService).getConcept("Network Follow-up");
+        verify(visitService).getVisits(null, null, null, null, null, null, null, null, null, false, false);
+        verify(programWorkflowService).getProgramWorkflowStatesByConcept(networkFollowupConcept);
+        verify(programWorkflowService).getPatientPrograms(eq(hospitalVisit.getPatient()), any(Program.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class), eq(false));
+        verify(visitService).endVisit(eq(hospitalVisit), isA(Date.class));
+    }
+
+    @Test
+    public void shouldNotCloseTheVisitIfVisitTypeIsHospitalAndProgramWorkFlowStateIsNotNetWorkFollowup() throws Exception {
+        VisitType visitType = new VisitType("Hospital", "this visitType is used for ipd section");
+        Patient patient = new Patient();
+        Visit hospitalVisit = new Visit(patient, visitType, new Date());
+        when(visitService.getVisits(null, null, null, null, null, null, null, null, null, false, false)).thenReturn(Arrays.asList(hospitalVisit));
+        ProgramWorkflowState networkFollowUpProgramWorkflowState = new ProgramWorkflowState(1);
+        ProgramWorkflowState identificationProgramWorkflowState = new ProgramWorkflowState(2);
+        when(programWorkflowService.getProgramWorkflowStatesByConcept(networkFollowupConcept)).thenReturn(Arrays.asList(networkFollowUpProgramWorkflowState));
+        PatientState patientState = new PatientState(1);
+        patientState.setState(identificationProgramWorkflowState);
+        Set<PatientState> patientStates = new TreeSet<PatientState>();
+        patientStates.add(patientState);
+        PatientProgram patientProgram = new PatientProgram(1);
+        patientProgram.setStates(patientStates);
+        when(programWorkflowService.getPatientPrograms(eq(hospitalVisit.getPatient()), any(Program.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class), eq(false))).thenReturn(Arrays.asList(patientProgram));
+        Date now = new Date();
+        whenNew(Date.class).withNoArguments().thenReturn(now);
+
+        closeVisitTask.execute();
+
+        verify(conceptService).getConcept("Network Follow-up");
+        verify(visitService).getVisits(null, null, null, null, null, null, null, null, null, false, false);
+        verify(programWorkflowService).getProgramWorkflowStatesByConcept(networkFollowupConcept);
+        verify(programWorkflowService).getPatientPrograms(eq(hospitalVisit.getPatient()), any(Program.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class), eq(false));
     }
 }
