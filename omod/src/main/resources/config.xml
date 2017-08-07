@@ -43,6 +43,7 @@
 
 	<require_modules>
 		<require_module>org.bahmni.module.bahmnicore</require_module>
+		<require_module>org.openmrs.module.bedmanagement</require_module>
 	</require_modules>
 	<advice>
 		<point>org.openmrs.api.PatientService</point>

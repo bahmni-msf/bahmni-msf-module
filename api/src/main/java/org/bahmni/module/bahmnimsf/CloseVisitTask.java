@@ -11,6 +11,8 @@ import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniObservation;
+import org.openmrs.module.bedmanagement.BedDetails;
+import org.openmrs.module.bedmanagement.BedManagementService;
 import org.openmrs.scheduler.tasks.AbstractTask;
 
 import java.util.Arrays;
@@ -34,13 +36,15 @@ public class CloseVisitTask extends AbstractTask {
         for (Visit openVisit : openVisits) {
             if (openVisit.getVisitType().getName().equals(HOSPITAL_VISIT_TYPE)) {
                 ProgramWorkflowService programWorkflowService = Context.getService(ProgramWorkflowService.class);
+                BedManagementService bedManagementService = Context.getService(BedManagementService.class);
                 List<ProgramWorkflowState> programWorkflowStatesByConcept = programWorkflowService.getProgramWorkflowStatesByConcept(networkFollowupConcept);
                 ProgramWorkflowState programWorkflowStateForNetWorkFollowUp = programWorkflowStatesByConcept.get(0);
                 List<PatientProgram> patientPrograms = programWorkflowService.getPatientPrograms(openVisit.getPatient(), null, null, null, new Date(), null, false);
                 for (PatientProgram patientProgram : patientPrograms) {
                     PatientState patientState = patientProgram.getCurrentState(null);
                     ProgramWorkflowState patientCurrentWorkFlowState = patientState.getState();
-                    if (patientCurrentWorkFlowState.equals(programWorkflowStateForNetWorkFollowUp) && patientState.getEndDate() == null) {
+                    BedDetails bedAssignmentDetailsByPatient = bedManagementService.getBedAssignmentDetailsByPatient(openVisit.getPatient());
+                    if (patientCurrentWorkFlowState.equals(programWorkflowStateForNetWorkFollowUp) && patientState.getEndDate() == null && bedAssignmentDetailsByPatient == null) {
                         visitService.endVisit(openVisit, new Date());
                     }
                 }
