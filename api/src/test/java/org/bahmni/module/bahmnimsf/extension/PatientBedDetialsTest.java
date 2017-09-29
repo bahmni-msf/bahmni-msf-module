@@ -17,6 +17,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -56,5 +57,18 @@ public class PatientBedDetialsTest {
         Map<String, String> patientDetails = patientBedDetails.run(appointment);
         Assert.assertEquals("FirstAddress", patientDetails.get("LOCATION_KEY"));
         Assert.assertEquals("1234", patientDetails.get("BED_NUMBER_KEY"));
+    }
+
+    @Test
+    public void bedInfoShouldNotHaveAnyDetailsIfBedDetailsIsNull() throws Exception {
+        Patient patient = new Patient();
+        patient.setUuid("patientUuid");
+        Appointment appointment = new Appointment();
+        appointment.setPatient(patient);
+        patientBedDetails = new PatientBedDetails();
+        when(bedManagementService.getBedAssignmentDetailsByPatient(appointment.getPatient())).thenReturn(null);
+        Map<String, String> patientDetails = patientBedDetails.run(appointment);
+        Map<String, String> bedInfo = new HashMap<>();
+        Assert.assertEquals(bedInfo, patientDetails);
     }
 }
