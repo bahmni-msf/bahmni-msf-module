@@ -37,11 +37,11 @@ public class CloseVisitTask extends AbstractTask {
             if (activePatientProgram != null) {
                 if (isHospitalVisit(openVisit)) {
                     if (isNotInNetworkFollowupStateOrBedIsAssigned(conceptService, programWorkflowService, activePatientProgram, openVisit.getPatient())) {
-                        return;
+                        continue;
                     }
                 } else {
                     if (hasNoOutcomesFilledInFormsFor(outcomeConcepts, conceptService, openVisit)) {
-                        return;
+                        continue;
                     }
                 }
             }
