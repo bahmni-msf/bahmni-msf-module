@@ -3,6 +3,7 @@ package org.bahmni.module.bahmnimsf;
 import org.bahmni.module.bahmnicore.service.BahmniObsService;
 import org.openmrs.Visit;
 import org.openmrs.Concept;
+import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
 import org.openmrs.PatientState;
 import org.openmrs.ProgramWorkflowState;
@@ -15,10 +16,10 @@ import org.openmrs.module.bedmanagement.BedDetails;
 import org.openmrs.module.bedmanagement.BedManagementService;
 import org.openmrs.scheduler.tasks.AbstractTask;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
 
 public class CloseVisitTask extends AbstractTask {
 
@@ -27,34 +28,61 @@ public class CloseVisitTask extends AbstractTask {
     @Override
     public void execute() {
         VisitService visitService = Context.getVisitService();
-        ConceptService conceptService = Context.getConceptService();
-        Concept firstStageSurgicalOutcomesConcept = conceptService.getConcept("FSTG, Outcomes for 1st stage surgical validation");
-        Concept followUpSurgicalOutcomesConcept = conceptService.getConcept("FUP, Outcomes for follow-up surgical validation");
-        Concept finalValidationOutcomesConcept = conceptService.getConcept("FV, Outcomes FV");
-        Concept networkFollowupConcept = conceptService.getConcept("Network Follow-up");
         List<Visit> openVisits = visitService.getVisits(null, null, null, null, null, null, null, null, null, false, false);
+        ConceptService conceptService = Context.getConceptService();
+        String[] outcomeConcepts = new String[]{"FSTG, Outcomes for 1st stage surgical validation", "FUP, Outcomes for follow-up surgical validation", "FV, Outcomes FV"};
         for (Visit openVisit : openVisits) {
-            if (openVisit.getVisitType().getName().equals(HOSPITAL_VISIT_TYPE)) {
-                ProgramWorkflowService programWorkflowService = Context.getService(ProgramWorkflowService.class);
-                BedManagementService bedManagementService = Context.getService(BedManagementService.class);
-                List<ProgramWorkflowState> programWorkflowStatesByConcept = programWorkflowService.getProgramWorkflowStatesByConcept(networkFollowupConcept);
-                ProgramWorkflowState programWorkflowStateForNetWorkFollowUp = programWorkflowStatesByConcept.get(0);
-                List<PatientProgram> patientPrograms = programWorkflowService.getPatientPrograms(openVisit.getPatient(), null, null, null, new Date(), null, false);
-                for (PatientProgram patientProgram : patientPrograms) {
-                    PatientState patientState = patientProgram.getCurrentState(null);
-                    ProgramWorkflowState patientCurrentWorkFlowState = patientState.getState();
-                    BedDetails bedAssignmentDetailsByPatient = bedManagementService.getBedAssignmentDetailsByPatient(openVisit.getPatient());
-                    if (patientCurrentWorkFlowState.equals(programWorkflowStateForNetWorkFollowUp) && patientState.getEndDate() == null && bedAssignmentDetailsByPatient == null) {
-                        visitService.endVisit(openVisit, new Date());
+            ProgramWorkflowService programWorkflowService = Context.getService(ProgramWorkflowService.class);
+            PatientProgram activePatientProgram = getActivePatientProgramForPatient(openVisit.getPatient(), programWorkflowService);
+            if (activePatientProgram != null) {
+                if (isHospitalVisit(openVisit)) {
+                    if (isNotInNetworkFollowupStateOrBedIsAssigned(conceptService, programWorkflowService, activePatientProgram, openVisit.getPatient())) {
+                        continue;
+                    }
+                } else {
+                    if (hasNoOutcomesFilledInFormsFor(outcomeConcepts, conceptService, openVisit)) {
+                        continue;
                     }
                 }
-            } else {
-                BahmniObsService bahmniObsService = Context.getService(BahmniObsService.class);
-                Collection<BahmniObservation> latestObsByVisit = bahmniObsService.getLatestObsByVisit(openVisit, Arrays.asList(firstStageSurgicalOutcomesConcept, followUpSurgicalOutcomesConcept, finalValidationOutcomesConcept), null, true);
-                if (latestObsByVisit.size() > 0) {
-                    visitService.endVisit(openVisit, new Date());
-                }
+            }
+            visitService.endVisit(openVisit, new Date());
+        }
+    }
+
+    private boolean hasNoOutcomesFilledInFormsFor(String[] outcomeConcepts, ConceptService conceptService, Visit openVisit) {
+        ArrayList<Concept> concepts = new ArrayList<>();
+        for (String outcomeConcept : outcomeConcepts) {
+            concepts.add(conceptService.getConcept(outcomeConcept));
+        }
+        BahmniObsService bahmniObsService = Context.getService(BahmniObsService.class);
+        Collection<BahmniObservation> latestObsByVisit = bahmniObsService.getLatestObsByVisit(openVisit, concepts, null, true);
+        return latestObsByVisit.size() == 0;
+    }
+
+    private PatientProgram getActivePatientProgramForPatient(Patient patient, ProgramWorkflowService programWorkflowService) {
+        List<PatientProgram> patientPrograms = programWorkflowService.getPatientPrograms(patient, null, null, null, null, null, false);
+        PatientProgram activePatientProgram = null;
+        for (PatientProgram patientProgram : patientPrograms) {
+            if (patientProgram.getDateCompleted() == null) {
+                activePatientProgram = patientProgram;
+                break;
             }
         }
+        return activePatientProgram;
+    }
+
+    private boolean isNotInNetworkFollowupStateOrBedIsAssigned(ConceptService conceptService, ProgramWorkflowService programWorkflowService, PatientProgram activePatientProgram, Patient patient) {
+        Concept networkFollowupConcept = conceptService.getConcept("Network Follow-up");
+        List<ProgramWorkflowState> programWorkflowStatesByConcept = programWorkflowService.getProgramWorkflowStatesByConcept(networkFollowupConcept);
+        ProgramWorkflowState programWorkflowStateForNetWorkFollowUp = programWorkflowStatesByConcept.get(0);
+        PatientState patientState = activePatientProgram.getCurrentState(null);
+        BedManagementService bedManagementService = Context.getService(BedManagementService.class);
+        ProgramWorkflowState patientCurrentWorkFlowState = patientState.getState();
+        BedDetails bedAssignmentDetailsByPatient = bedManagementService.getBedAssignmentDetailsByPatient(patient);
+        return !(patientCurrentWorkFlowState.equals(programWorkflowStateForNetWorkFollowUp) && patientState.getEndDate() == null && bedAssignmentDetailsByPatient == null);
+    }
+
+    private boolean isHospitalVisit(Visit openVisit) {
+        return openVisit.getVisitType().getName().equals(HOSPITAL_VISIT_TYPE);
     }
 }

@@ -44,11 +44,17 @@
 	<require_modules>
 		<require_module>org.bahmni.module.bahmnicore</require_module>
 		<require_module>org.openmrs.module.bedmanagement</require_module>
+		<require_module>org.openmrs.module.appointments</require_module>
 	</require_modules>
 	<advice>
 		<point>org.openmrs.api.PatientService</point>
 		<class>org.bahmni.module.bahmnimsf.identifier.enhancement.advice.BeforeSaveAdvice</class>
 	</advice>
 
+	<globalProperty>
+		<property>amman.exports.location</property>
+		<defaultValue>/home/bahmni/amman_export/</defaultValue>
+		<description>Output location of amman-exports. This field should end with a slash</description>
+	</globalProperty>
 </module>
 
