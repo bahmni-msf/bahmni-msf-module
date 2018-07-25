@@ -4,7 +4,8 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.appointments.model.Appointment;
 import org.openmrs.module.appointments.web.extension.AppointmentResponseExtension;
 import org.openmrs.module.bedmanagement.BedDetails;
-import org.openmrs.module.bedmanagement.BedManagementService;
+
+import org.openmrs.module.bedmanagement.service.BedManagementService;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
