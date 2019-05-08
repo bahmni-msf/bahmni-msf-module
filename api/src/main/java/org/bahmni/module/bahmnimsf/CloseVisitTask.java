@@ -13,7 +13,7 @@ import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniObservation;
 import org.openmrs.module.bedmanagement.BedDetails;
-import org.openmrs.module.bedmanagement.BedManagementService;
+import org.openmrs.module.bedmanagement.service.BedManagementService;
 import org.openmrs.scheduler.tasks.AbstractTask;
 
 import java.util.Collection;
