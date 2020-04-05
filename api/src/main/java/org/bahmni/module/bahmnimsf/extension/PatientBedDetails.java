@@ -6,10 +6,12 @@ import org.openmrs.module.appointments.web.extension.AppointmentResponseExtensio
 import org.openmrs.module.bedmanagement.BedDetails;
 import org.openmrs.module.bedmanagement.service.BedManagementService;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Transactional(readOnly= true)
 @Component
 public class PatientBedDetails implements AppointmentResponseExtension {
 
