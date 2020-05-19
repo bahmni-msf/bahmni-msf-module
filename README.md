@@ -6,4 +6,4 @@ Amman's custom omod which inclues following features/APIs/extensions
 * Appointments extension to show location and bed number (To be verifed still it is in use)
 * Closing visit based on an outcome along with some checks on *Network follow-up state and whether bed assigned*
 * Patient identifier generation logic
-* Thumbnail generation logic for videos(To be tested wheteher it is still valid from Bahmni-91)
+* Thumbnail generation logic for videos(To be verifed still it is in use)
