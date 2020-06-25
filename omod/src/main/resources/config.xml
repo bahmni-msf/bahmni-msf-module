@@ -15,14 +15,14 @@
 	<require_version>${openMRSVersion}</require_version>
 	<!-- / Module Properties -->
 
-	
+
 	<!-- Module Activator -->
 	<activator>@MODULE_PACKAGE@.BahmniMSFModuleActivator</activator>
-	
-	
+
+
 	<!-- Maps hibernate file's, if present -->
 	<mappingFiles>
-				
+
 	</mappingFiles>
 
 	<!-- Internationalization -->
@@ -44,7 +44,7 @@
 	<require_modules>
 		<require_module>org.bahmni.module.bahmnicore</require_module>
 		<require_module>org.openmrs.module.bedmanagement</require_module>
-		<require_module>org.openmrs.module.appointments</require_module>
+		<require_module>org.bahmni.module.appointments</require_module>
 	</require_modules>
 	<advice>
 		<point>org.openmrs.api.PatientService</point>
