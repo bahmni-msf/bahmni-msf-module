@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.bahmni.module</groupId>
 		<artifactId>bahmnimsf</artifactId>
-		<version>0.91.0</version>
+		<version>0.93</version>
 	</parent>
 
 	<artifactId>bahmnimsf-omod</artifactId>
