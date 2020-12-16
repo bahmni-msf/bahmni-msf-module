@@ -10,13 +10,6 @@
 -->
 
     <property name="now" value="now()"/>
-    <changeSet id="bahmni-msf-260820160126" author="Chethan, Yugesh">
-        <comment>Close Visit Task Specific To Amman Implementation</comment>
-        <sql>
-            update scheduler_task_config set schedulable_class ='org.bahmni.module.bahmnimsf.CloseVisitTask', start_on_startup = 1 where
-            name = 'Auto Close Visits Task';
-        </sql>
-    </changeSet>
     <changeSet id="bahmni-msf-131020161725" author="Chethan, Santhosh">
         <comment>Adding concept mappings of type Abbreviation for nationality concepts</comment>
         <sqlFile path="AbbreviationsForNationalityConcepts.sql"/>
