@@ -2,7 +2,8 @@ name: Build and Publish package
 on:
   push:
     branches:
-      - master-*
+      - master
+      - ocp-dev-bahmni-lite
 
 
 jobs:
