@@ -4,6 +4,7 @@ on:
     branches:
       - master
       - ocp-dev-bahmni-lite
+  workflow_dispatch:
 
 
 jobs:
